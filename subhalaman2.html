@@ -1,0 +1,143 @@
+<!DOCTYPE html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 3D Sederhana</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        let cube, ground;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let velocity = new THREE.Vector3();
+        let direction = new THREE.Vector3();
+
+        const clock = new THREE.Clock();
+
+        function init() {
+            // Scene, Camera, and Renderer Setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lights
+            const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+            scene.add(light);
+
+            // Floor (Ground)
+            const geometry = new THREE.PlaneGeometry(5000, 5000);
+            const material = new THREE.ShadowMaterial({ opacity: 0.5 });
+            ground = new THREE.Mesh(geometry, material);
+            ground.rotation.x = - Math.PI / 2;
+            ground.position.y = -5;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Cube (just a placeholder object)
+            const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.position.set(0, 0, -5);
+            scene.add(cube);
+
+            // Camera Setup
+            camera.position.y = 10;
+            camera.position.z = 10;
+
+            // Event listeners for keyboard movement
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+
+            // Resize canvas on window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // Handle keyboard input
+        function onKeyDown(event) {
+            switch (event.keyCode) {
+                case 87: // W
+                    moveForward = true;
+                    break;
+                case 83: // S
+                    moveBackward = true;
+                    break;
+                case 65: // A
+                    moveLeft = true;
+                    break;
+                case 68: // D
+                    moveRight = true;
+                    break;
+            }
+        }
+
+        function onKeyUp(event) {
+            switch (event.keyCode) {
+                case 87: // W
+                    moveForward = false;
+                    break;
+                case 83: // S
+                    moveBackward = false;
+                    break;
+                case 65: // A
+                    moveLeft = false;
+                    break;
+                case 68: // D
+                    moveRight = false;
+                    break;
+            }
+        }
+
+        // Handle window resizing
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Update player movement
+        function updateMovement(delta) {
+            velocity.x -= velocity.x * 10.0 * delta;
+            velocity.z -= velocity.z * 10.0 * delta;
+
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+            direction.normalize();
+
+            if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
+            if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+
+            camera.position.x += velocity.x * delta;
+            camera.position.z += velocity.z * delta;
+        }
+
+        // Animate and render the scene
+        function animate() {
+            requestAnimationFrame(animate);
+
+            let delta = clock.getDelta();
+            updateMovement(delta);
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize and start the game
+        init();
+        animate();
+    </script>
+</body>
+</html>
